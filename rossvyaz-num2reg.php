@@ -35,13 +35,13 @@ if (!$cmd) {
 
 
 if ($cmd == "updatedb") {
-	$nub2reg = new Num2reg($DATABASE, true);
-	$nub2reg->updatedb();
+	$num2reg = new Num2reg($DATABASE, true);
+	$num2reg->updatedb();
 	exit();
 }
 
-$nub2reg = new Num2reg($DATABASE, false);
-$ret = $nub2reg->search($cmd);
+$num2reg = new Num2reg($DATABASE, false);
+$ret = $num2reg->search($cmd);
 if ($ret["err"]) {
 	echo '#'.$ret["err"]."\n";
 	exit(1);
