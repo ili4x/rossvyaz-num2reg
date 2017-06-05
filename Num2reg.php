@@ -370,6 +370,17 @@ class Num2reg {
 		  }
 		 */
 
+
+		$this->db->query("drop table if exists regions");
+		$this->db->exec("create table if not exists regions (reg_code TEXT, region TEXT, region_tr TEXT)");
+		foreach ($this->codes as $reg_code => $name) {
+			$name_tr = $this->rus2translit($name);
+			$this->db->exec("insert into regions (reg_code, region, region_tr) values ('$reg_code', '$name', '$name_tr')");
+		} 
+		$this->db->query("CREATE INDEX regions_idx ON regions(reg_code)");
+
+
+
 		$this->db->exec("create table if not exists data_tmp (code INTEGER, number_min INTEGER, number_max INTEGER, number_count INTEGER, oper TEXT, reg_code TEXT, region_orig TEXT)");
 		$this->db->query("begin");
 		foreach ($this->files as $url) {
@@ -414,6 +425,7 @@ class Num2reg {
 		$this->db->query("end");
 		$this->db->query("drop table if exists data");
 		$this->db->query("ALTER TABLE data_tmp rename to data");
+		$this->db->query("CREATE INDEX data_idx ON data(number_min, number_max)");
 		return true;
 	}
 
@@ -445,12 +457,12 @@ class Num2reg {
 			return array("code" => -2, "err" => "Пустая база данных. Запустите updatedb!");
 		}
 
-		$list = $this->db->query("select * from data where $number between number_min and number_max");
+		$list = $this->db->query("select * from data, regions where data.reg_code = regions.reg_code and $number between number_min and number_max");
 		$data = $list->fetchArray(SQLITE3_ASSOC);
 		if (!$data) {
 			return array("code" => -3, "err" => "Ничего не найдено");
 		}
-		$data["region"] = $this->codes[$data["reg_code"]];
+		//$data["region"] = $this->codes[$data["reg_code"]];
 		return $data;
 	}
 
@@ -458,6 +470,34 @@ class Num2reg {
 		if ($this->debug) {
 			echo $s . "\n";
 		}
+	}
+
+	private function rus2translit($string) {
+		$converter = array(
+		    'а' => 'a', 'б' => 'b', 'в' => 'v',
+		    'г' => 'g', 'д' => 'd', 'е' => 'e',
+		    'ё' => 'e', 'ж' => 'zh', 'з' => 'z',
+		    'и' => 'i', 'й' => 'y', 'к' => 'k',
+		    'л' => 'l', 'м' => 'm', 'н' => 'n',
+		    'о' => 'o', 'п' => 'p', 'р' => 'r',
+		    'с' => 's', 'т' => 't', 'у' => 'u',
+		    'ф' => 'f', 'х' => 'h', 'ц' => 'c',
+		    'ч' => 'ch', 'ш' => 'sh', 'щ' => 'sch',
+		    'ь' => '', 'ы' => 'y', 'ъ' => '',
+		    'э' => 'e', 'ю' => 'yu', 'я' => 'ya',
+		    'А' => 'A', 'Б' => 'B', 'В' => 'V',
+		    'Г' => 'G', 'Д' => 'D', 'Е' => 'E',
+		    'Ё' => 'E', 'Ж' => 'Zh', 'З' => 'Z',
+		    'И' => 'I', 'Й' => 'Y', 'К' => 'K',
+		    'Л' => 'L', 'М' => 'M', 'Н' => 'N',
+		    'О' => 'O', 'П' => 'P', 'Р' => 'R',
+		    'С' => 'S', 'Т' => 'T', 'У' => 'U',
+		    'Ф' => 'F', 'Х' => 'H', 'Ц' => 'C',
+		    'Ч' => 'Ch', 'Ш' => 'Sh', 'Щ' => 'Sch',
+		    'Ь' => '', 'Ы' => 'Y', 'Ъ' => '',
+		    'Э' => 'E', 'Ю' => 'Yu', 'Я' => 'Ya',
+		);
+		return strtr($string, $converter);
 	}
 
 }
