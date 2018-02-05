@@ -341,7 +341,7 @@ class Num2reg {
 
 	private function trim_name($name) {
 		$name = str_replace("АО", "", $name);
-		$name = mb_strtolower($name);
+		$name = mb_strtolower($name, 'UTF-8');
 		$name = str_replace("республика", "", $name);
 		$name = str_replace("область", "", $name);
 		$name = str_replace("край", "", $name);
